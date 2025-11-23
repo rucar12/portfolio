@@ -1,0 +1,84 @@
+{
+  "root": true,
+  "env": { "browser": true, "es2020": true, "node": true },
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "ignorePatterns": [".next", "node_modules", "dist", "out"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint", "simple-import-sort", "import"],
+  "rules": {
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+    "import/newline-after-import": "error",
+    "import/no-duplicates": "error",
+    "import/first": "error",
+    "no-nested-ternary": "error",
+    "eol-last": ["error", "always"],
+    "newline-before-return": "error",
+    "@typescript-eslint/consistent-type-imports": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "no-prototype-builtins": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "react/jsx-curly-brace-presence": "error",
+    "curly": ["error", "all"],
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "no-warning-comments": ["error", { "terms": ["todo"], "location": "anywhere" }],
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        "selector": "interface",
+        "format": ["PascalCase"],
+        "custom": {
+          "regex": "^(I[A-Z]|Props$)",
+          "match": false
+        }
+      },
+      {
+        "selector": "function",
+        "format": ["camelCase", "PascalCase"],
+        "filter": {
+          "regex": "^(POST|GET|PUT|DELETE|PATCH)$",
+          "match": false
+        },
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "function",
+        "modifiers": ["exported"],
+        "format": ["PascalCase"],
+        "filter": {
+          "regex": "^[A-Z]",
+          "match": true
+        }
+      },
+      {
+        "selector": ["class", "enum", "typeLike", "enumMember"],
+        "format": ["PascalCase"]
+      },
+      {
+        "selector": "variable",
+        "modifiers": ["exported"],
+        "format": ["PascalCase", "camelCase"],
+        "filter": {
+          "regex": "^[A-Z]",
+          "match": true
+        }
+      }
+    ]
+  }
+}
