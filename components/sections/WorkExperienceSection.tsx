@@ -25,7 +25,7 @@ export function WorkExperienceSection({ experiences }: WorkExperienceSectionProp
           return (
             <div
               key={exp.id}
-              className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 md:p-8 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow"
+              className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 md:p-8 border border-gray-200 dark:border-gray-700 animate-fade-in-up"
             >
               <div className="flex flex-col md:flex-row md:items-start gap-6">
                 {logoUrl && (

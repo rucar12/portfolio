@@ -1,138 +1,28 @@
 # Portfolio
 
-Сучасний веб-сайт портфоліо з інтеграцією Strapi CMS для легкого управління контентом.
+Personal portfolio website with dynamic content managed through Strapi CMS.
 
-## Особливості
+## About
 
-- 🎨 Темна/світла тема з автоматичним перемиканням
-- 📱 Повністю адаптивний дизайн для мобільних пристроїв
-- 📄 Експорт резюме в PDF формат
-- 🔄 Динамічний контент з Strapi CMS
-- ⚡ Швидкий та оптимізований (Next.js 14)
-- 🎯 TypeScript для типобезпеки
+This is a personal portfolio site that displays work experience, technologies, and skills. Content is managed through Strapi CMS, allowing updates without code changes.
 
-## Технології
+The site consists of several sections:
 
-- Next.js 14 (App Router)
-- TypeScript
-- Tailwind CSS
-- Strapi CMS
-- jsPDF для експорту PDF
+- Welcome section with brief description and profile photo
+- Work experience with details about previous positions
+- Technologies with years of experience
+- PDF resume download functionality
 
-## Встановлення
+## Tech Stack
 
-1. Встановіть залежності:
+- **Next.js 14** with App Router and static generation
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
+- **Strapi CMS** as headless CMS for content management
+- **jsPDF** for PDF CV export
 
-```bash
-npm install
-```
+## Architecture
 
-2. Налаштуйте Strapi (див. [STRAPI_SETUP.md](./STRAPI_SETUP.md))
+The project uses Next.js App Router. Data is fetched from Strapi at build time or through ISR (Incremental Static Regeneration). Content updates via webhook revalidation when changes are made in Strapi.
 
-3. Створіть файл `.env.local`:
-
-```
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
-```
-
-4. Запустіть проект:
-
-```bash
-npm run dev
-```
-
-Відкрийте [http://localhost:3000](http://localhost:3000) у браузері.
-
-## Структура проекту
-
-```
-portfolio/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx         # Основний layout
-│   ├── page.tsx           # Головна сторінка
-│   └── globals.css        # Глобальні стилі
-├── components/            # React компоненти
-│   ├── Header.tsx        # Навігація та меню
-│   ├── Footer.tsx        # Підвал
-│   ├── ThemeProvider.tsx # Провайдер теми
-│   └── sections/         # Секції сторінки
-├── lib/                  # Утиліти та API
-│   ├── strapi.ts        # Інтеграція з Strapi
-│   └── pdfExport.ts     # Експорт PDF
-└── STRAPI_SETUP.md      # Інструкції для Strapi
-```
-
-## Використання
-
-### Заповнення контенту
-
-Всі дані заповнюються через Strapi CMS:
-
-1. Запустіть Strapi: `cd strapi-portfolio && npm run develop`
-2. Відкрийте адмін-панель: http://localhost:1337/admin
-3. Заповніть дані в Content Manager:
-   - **Welcome** - інформація про себе
-   - **Work Experience** - місця роботи
-   - **Technology** - технології з роками досвіду
-
-### Експорт PDF
-
-Натисніть кнопку "PDF" в навігації для завантаження резюме у форматі PDF.
-
-## Розробка
-
-```bash
-# Розробка
-npm run dev
-
-# Білд
-npm run build
-
-# Запуск production
-npm start
-
-# Лінтер
-npm run lint
-```
-
-## Деплой
-
-### Vercel (рекомендовано)
-
-1. Підключіть GitHub репозиторій до [Vercel](https://vercel.com)
-2. Додайте змінні середовища:
-   - `NEXT_PUBLIC_STRAPI_URL` - URL вашого Strapi backend
-   - `REVALIDATE_SECRET` - секретний ключ для webhook revalidation
-3. Deploy!
-
-### Environment Variables
-
-Створіть `.env.local` для локальної розробки або додайте в Vercel:
-
-```
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
-REVALIDATE_SECRET=your-secret-key-here
-```
-
-### Налаштування Webhook (опціонально)
-
-Для автоматичного оновлення контенту при зміні в Strapi:
-
-1. В Strapi: Settings → Webhooks
-2. Створіть webhook:
-   - URL: `https://your-domain.com/api/revalidate`
-   - Events: Entry create, update, delete
-   - Headers: `x-revalidate-secret: your-secret-key-here`
-
-## Code Quality
-
-Проект налаштований з:
-
-- ESLint з строгими правилами
-- TypeScript з strict mode
-- Prettier для форматування
-- Husky + lint-staged для pre-commit перевірок
-
-## Ліцензія
-
-MIT
+Components are organized into UI elements and page sections. Theme (light/dark) is managed through ThemeProvider with support for system preferences.

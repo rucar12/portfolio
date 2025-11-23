@@ -61,27 +61,32 @@ export interface CVData {
   file: StrapiFile
 }
 
+export interface MetadataData {
+  titleUk: string
+  titleEn: string
+  descriptionUk: string
+  descriptionEn: string
+  keywords: string[] | string
+  ogImage?: StrapiImage
+  twitterImage?: StrapiImage
+}
+
 export interface PortfolioData {
   welcome: WelcomeData
   workExperiences: WorkExperience[]
   technologies: Technology[]
   cv: CVData | null
+  metadata: MetadataData | null
 }
 
 export async function getPortfolioData(): Promise<PortfolioData> {
   try {
-    const [welcomeRes, experiencesRes, technologiesRes, cvRes] = await Promise.all([
+    const [welcomeRes, experiencesRes, technologiesRes, cvRes, metadataRes] = await Promise.all([
       api.get('/welcome?populate=*'),
       api.get('/work-experiences?populate=*&sort=startDate:desc'),
       api.get('/technologies?populate=*&sort=yearsOfExperience:desc'),
-      api.get('/cv?populate=*').catch(error => {
-        console.warn(
-          'CV not found or permissions not set:',
-          error.response?.status || error.message
-        )
-
-        return { data: { data: null } }
-      }),
+      api.get('/cv?populate=*').catch(() => ({ data: { data: null } })),
+      api.get('/metadata?populate=*').catch(() => ({ data: { data: null } })),
     ])
 
     const welcomeData = welcomeRes.data.data
@@ -107,7 +112,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
     const cvData = cvRes?.data?.data
     let cv: CVData | null = null
 
-    if (cvData && cvData.file) {
+    if (cvData?.file) {
       const fileData = cvData.file
       cv = {
         file: {
@@ -122,8 +127,68 @@ export async function getPortfolioData(): Promise<PortfolioData> {
           },
         },
       }
-    } else if (cvData === null) {
-      console.warn('CV data is null. Make sure CV is published in Strapi and permissions are set.')
+    }
+
+    const metadataData = metadataRes?.data?.data
+    let metadata: MetadataData | null = null
+
+    if (metadataData) {
+      const ogImageData = metadataData.ogImage
+      const ogImage: StrapiImage = ogImageData
+        ? {
+            data: {
+              id: ogImageData.id,
+              attributes: {
+                url:
+                  ogImageData.url ||
+                  ogImageData.formats?.large?.url ||
+                  ogImageData.formats?.medium?.url ||
+                  '',
+                alternativeText: ogImageData.alternativeText || '',
+                width: ogImageData.width || 0,
+                height: ogImageData.height || 0,
+              },
+            },
+          }
+        : { data: null }
+
+      const twitterImageData = metadataData.twitterImage
+      const twitterImage: StrapiImage = twitterImageData
+        ? {
+            data: {
+              id: twitterImageData.id,
+              attributes: {
+                url:
+                  twitterImageData.url ||
+                  twitterImageData.formats?.large?.url ||
+                  twitterImageData.formats?.medium?.url ||
+                  '',
+                alternativeText: twitterImageData.alternativeText || '',
+                width: twitterImageData.width || 0,
+                height: twitterImageData.height || 0,
+              },
+            },
+          }
+        : { data: null }
+
+      metadata = {
+        titleUk: metadataData.titleUk || '',
+        titleEn: metadataData.titleEn || '',
+        descriptionUk: metadataData.descriptionUk || '',
+        descriptionEn: metadataData.descriptionEn || '',
+        keywords: (() => {
+          if (Array.isArray(metadataData.keywords)) {
+            return metadataData.keywords
+          }
+          if (typeof metadataData.keywords === 'string') {
+            return metadataData.keywords.split(',').map((k: string) => k.trim())
+          }
+          
+return []
+        })(),
+        ogImage: ogImage.data ? ogImage : undefined,
+        twitterImage: twitterImage.data ? twitterImage : undefined,
+      }
     }
 
     return {
@@ -133,6 +198,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
         subtitle: welcomeData.subtitle,
         profileImage,
       },
+      metadata,
       workExperiences: experiencesRes.data.data.map(
         (item: {
           id: number
@@ -194,6 +260,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
       workExperiences: [],
       technologies: [],
       cv: null,
+      metadata: null,
     }
   }
 }
