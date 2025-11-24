@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:3000'
 
 const api = axios.create({
   baseURL: `${STRAPI_URL}/api`,
@@ -82,12 +82,29 @@ export interface PortfolioData {
 export async function getPortfolioData(): Promise<PortfolioData> {
   try {
     const [welcomeRes, experiencesRes, technologiesRes, cvRes, metadataRes] = await Promise.all([
-      api.get('/welcome?populate=*'),
-      api.get('/work-experiences?populate=*&sort=startDate:desc'),
-      api.get('/technologies?populate=*&sort=yearsOfExperience:desc'),
+      api.get('/welcome?populate=*').catch(error => {
+        console.error('Error fetching welcome data:', error.response?.status, error.response?.data)
+        throw error
+      }),
+      api.get('/work-experiences?populate=*&sort=startDate:desc').catch(error => {
+        console.error('Error fetching work experiences:', error.response?.status)
+        
+return { data: { data: [] } }
+      }),
+      api.get('/technologies?populate=*&sort=yearsOfExperience:desc').catch(error => {
+        console.error('Error fetching technologies:', error.response?.status)
+        
+return { data: { data: [] } }
+      }),
       api.get('/cv?populate=*').catch(() => ({ data: { data: null } })),
       api.get('/metadata?populate=*').catch(() => ({ data: { data: null } })),
     ])
+
+    if (!welcomeRes.data?.data) {
+      throw new Error(
+        'Welcome data not found in Strapi. Please check if the "welcome" single type exists and is published.'
+      )
+    }
 
     const welcomeData = welcomeRes.data.data
     const profileImageData = welcomeData.profileImage
@@ -183,8 +200,8 @@ export async function getPortfolioData(): Promise<PortfolioData> {
           if (typeof metadataData.keywords === 'string') {
             return metadataData.keywords.split(',').map((k: string) => k.trim())
           }
-          
-return []
+
+          return []
         })(),
         ogImage: ogImage.data ? ogImage : undefined,
         twitterImage: twitterImage.data ? twitterImage : undefined,
@@ -276,6 +293,11 @@ export function getStrapiImageUrl(image: StrapiImage): string | null {
     return null
   }
 
+  // Якщо URL вже повний (починається з http:// або https://), повертаємо як є
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+
   return `${STRAPI_URL}${url}`
 }
 
@@ -284,5 +306,12 @@ export function getStrapiFileUrl(file: StrapiFile): string | null {
     return null
   }
 
-  return `${STRAPI_URL}${file.data.attributes.url}`
+  const url = file.data.attributes.url
+
+  // Якщо URL вже повний (починається з http:// або https://), повертаємо як є
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+
+  return `${STRAPI_URL}${url}`
 }
