@@ -32,7 +32,7 @@ export function Header({ cvFile }: HeaderProps) {
     }
     const cvUrl = getStrapiFileUrl(cvFile)
     if (cvUrl) {
-      downloadCV(cvUrl, cvFile.data.attributes?.name || 'Liubomyr_Danyshchuk_CV.pdf')
+      downloadCV(cvUrl, cvFile.data.attributes?.name)
     } else {
       console.warn('CV URL could not be generated')
     }

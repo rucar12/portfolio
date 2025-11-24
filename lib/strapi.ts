@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:3000'
+const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
 
 const api = axios.create({
   baseURL: `${STRAPI_URL}/api`,
@@ -88,13 +88,13 @@ export async function getPortfolioData(): Promise<PortfolioData> {
       }),
       api.get('/work-experiences?populate=*&sort=startDate:desc').catch(error => {
         console.error('Error fetching work experiences:', error.response?.status)
-        
-return { data: { data: [] } }
+
+        return { data: { data: [] } }
       }),
       api.get('/technologies?populate=*&sort=yearsOfExperience:desc').catch(error => {
         console.error('Error fetching technologies:', error.response?.status)
-        
-return { data: { data: [] } }
+
+        return { data: { data: [] } }
       }),
       api.get('/cv?populate=*').catch(() => ({ data: { data: null } })),
       api.get('/metadata?populate=*').catch(() => ({ data: { data: null } })),
@@ -293,7 +293,6 @@ export function getStrapiImageUrl(image: StrapiImage): string | null {
     return null
   }
 
-  // Якщо URL вже повний (починається з http:// або https://), повертаємо як є
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url
   }
@@ -308,7 +307,6 @@ export function getStrapiFileUrl(file: StrapiFile): string | null {
 
   const url = file.data.attributes.url
 
-  // Якщо URL вже повний (починається з http:// або https://), повертаємо як є
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url
   }
