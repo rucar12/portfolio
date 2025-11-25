@@ -19,6 +19,7 @@ const navigationItems = [
   { href: '#welcome', label: 'About' },
   { href: '#experience', label: 'Experience' },
   { href: '#technologies', label: 'Technologies' },
+  { href: '#contact', label: 'Contact' },
 ]
 
 export function Header({ cvFile }: HeaderProps) {

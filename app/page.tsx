@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
+import { ContactSection } from '@/components/sections/ContactSection'
 import { TechnologiesSection } from '@/components/sections/TechnologiesSection'
 import { WelcomeSection } from '@/components/sections/WelcomeSection'
 import { WorkExperienceSection } from '@/components/sections/WorkExperienceSection'
@@ -113,6 +114,7 @@ export default async function Home() {
         <WelcomeSection data={data.welcome} />
         <WorkExperienceSection experiences={data.workExperiences} />
         <TechnologiesSection technologies={data.technologies} />
+        <ContactSection socialLinks={data.socialLinks} />
         <Footer />
       </main>
     </>

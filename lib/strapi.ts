@@ -1,6 +1,9 @@
 import axios from 'axios'
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL
+const STRAPI_URL = (process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337').replace(
+  /\/$/,
+  ''
+)
 
 const api = axios.create({
   baseURL: `${STRAPI_URL}/api`,
@@ -71,34 +74,40 @@ export interface MetadataData {
   twitterImage?: StrapiImage
 }
 
+export interface SocialLink {
+  id: number
+  name: string
+  url: string
+  handle?: string | null
+  icon?: StrapiImage | null
+}
+
 export interface PortfolioData {
   welcome: WelcomeData
   workExperiences: WorkExperience[]
   technologies: Technology[]
   cv: CVData | null
   metadata: MetadataData | null
+  socialLinks: SocialLink[]
 }
 
 export async function getPortfolioData(): Promise<PortfolioData> {
   try {
-    const [welcomeRes, experiencesRes, technologiesRes, cvRes, metadataRes] = await Promise.all([
-      api.get('/welcome?populate=*').catch(error => {
-        console.error('Error fetching welcome data:', error.response?.status, error.response?.data)
-        throw error
-      }),
-      api.get('/work-experiences?populate=*&sort=startDate:desc').catch(error => {
-        console.error('Error fetching work experiences:', error.response?.status)
-
-        return { data: { data: [] } }
-      }),
-      api.get('/technologies?populate=*&sort=yearsOfExperience:desc').catch(error => {
-        console.error('Error fetching technologies:', error.response?.status)
-
-        return { data: { data: [] } }
-      }),
-      api.get('/cv?populate=*').catch(() => ({ data: { data: null } })),
-      api.get('/metadata?populate=*').catch(() => ({ data: { data: null } })),
-    ])
+    const [welcomeRes, experiencesRes, technologiesRes, cvRes, metadataRes, socialLinksRes] =
+      await Promise.all([
+        api.get('/welcome?populate=*').catch(error => {
+          throw error
+        }),
+        api.get('/work-experiences?populate=*&sort=startDate:desc').catch(() => {
+          return { data: { data: [] } }
+        }),
+        api.get('/technologies?populate=*&sort=yearsOfExperience:desc').catch(() => {
+          return { data: { data: [] } }
+        }),
+        api.get('/cv?populate=*').catch(() => ({ data: { data: null } })),
+        api.get('/metadata?populate=*').catch(() => ({ data: { data: null } })),
+        api.get('/social-links?populate=icon').catch(() => ({ data: { data: [] } })),
+      ])
 
     if (!welcomeRes.data?.data) {
       throw new Error(
@@ -263,10 +272,120 @@ export async function getPortfolioData(): Promise<PortfolioData> {
         })
       ),
       cv,
+      socialLinks: (() => {
+        const rawData = socialLinksRes.data.data || []
+
+        // Remove duplicates by URL (more reliable than ID since duplicates can have different IDs)
+        const uniqueByUrl = new Map<string, (typeof rawData)[0]>()
+        rawData.forEach((item: { id: number; url: string; name: string }) => {
+          const urlKey = item.url.toLowerCase().trim()
+          if (!uniqueByUrl.has(urlKey)) {
+            uniqueByUrl.set(urlKey, item)
+          }
+        })
+
+        const uniqueData = Array.from(uniqueByUrl.values())
+
+        const processed = uniqueData.map(
+          (item: {
+            id: number
+            name: string
+            url: string
+            handle?: string | null
+            icon?: unknown
+          }) => {
+            const iconData = item.icon
+            let icon: StrapiImage | null = null
+
+            if (iconData) {
+              const iconObj = iconData as {
+                id?: number
+                data?: {
+                  id: number
+                  attributes: {
+                    url?: string
+                    formats?: {
+                      large?: { url: string }
+                      thumbnail?: { url: string }
+                      small?: { url: string }
+                      medium?: { url: string }
+                    }
+                    alternativeText?: string
+                    width?: number
+                    height?: number
+                  }
+                }
+                url?: string
+                formats?: {
+                  large?: { url: string }
+                  thumbnail?: { url: string }
+                  small?: { url: string }
+                  medium?: { url: string }
+                }
+                alternativeText?: string
+                width?: number
+                height?: number
+              }
+
+              if (iconObj.data?.attributes) {
+                const attrs = iconObj.data.attributes
+                icon = {
+                  data: {
+                    id: iconObj.data.id,
+                    attributes: {
+                      url:
+                        attrs.url ||
+                        attrs.formats?.large?.url ||
+                        attrs.formats?.medium?.url ||
+                        attrs.formats?.small?.url ||
+                        attrs.formats?.thumbnail?.url ||
+                        '',
+                      alternativeText: attrs.alternativeText || '',
+                      width: attrs.width || 0,
+                      height: attrs.height || 0,
+                    },
+                  },
+                }
+              } else if (iconObj.id) {
+                const formats = iconObj.formats || {}
+                const iconUrl =
+                  (iconObj.url && iconObj.url.trim()) ||
+                  formats.large?.url ||
+                  formats.medium?.url ||
+                  formats.small?.url ||
+                  formats.thumbnail?.url ||
+                  ''
+
+                if (iconUrl && iconUrl.trim()) {
+                  icon = {
+                    data: {
+                      id: iconObj.id,
+                      attributes: {
+                        url: iconUrl,
+                        alternativeText: iconObj.alternativeText || '',
+                        width: iconObj.width || 0,
+                        height: iconObj.height || 0,
+                      },
+                    },
+                  }
+                }
+              }
+            }
+
+            return {
+              id: item.id,
+              name: item.name,
+              url: item.url,
+              handle: item.handle || null,
+              icon,
+            }
+          }
+        )
+        
+return processed
+      })(),
     }
   } catch (error) {
-    console.error('Error fetching data from Strapi:', error)
-
     return {
       welcome: {
         title: 'Liubomyr Danyshchuk',
@@ -278,6 +397,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
       technologies: [],
       cv: null,
       metadata: null,
+      socialLinks: [],
     }
   }
 }
